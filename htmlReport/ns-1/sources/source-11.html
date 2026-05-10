@@ -1,0 +1,120 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > UrlFetcher</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">de.seuhd.worldcup</a>
+</div>
+
+<h1>Coverage Summary for Class: UrlFetcher (de.seuhd.worldcup)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">UrlFetcher</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package de.seuhd.worldcup
+&nbsp;
+&nbsp;import kotlinx.serialization.ExperimentalSerializationApi
+&nbsp;import kotlinx.serialization.json.Json
+&nbsp;import kotlinx.serialization.json.decodeFromStream
+&nbsp;import java.io.InputStream
+&nbsp;import java.net.HttpURLConnection
+&nbsp;import java.net.URI
+&nbsp;
+&nbsp;fun interface UrlFetcher {
+&nbsp;    fun fetch(url: String): InputStream
+&nbsp;}
+&nbsp;
+&nbsp;/**
+&nbsp; * Loads the bundled tournament data from the classpath. The JSON lives under
+&nbsp; * `src/main/resources`, so this works from any working directory.
+&nbsp; */
+&nbsp;object JsonLoader {
+&nbsp;
+&nbsp;    @OptIn(ExperimentalSerializationApi::class)
+&nbsp;    fun loadJson(resourcePath: String = &quot;/world_cup_2026_full_data.json&quot;): WorldCupData {
+&nbsp;        val stream = JsonLoader::class.java.getResourceAsStream(resourcePath)
+&nbsp;            ?: error(&quot;Resource not found on classpath: $resourcePath&quot;)
+&nbsp;        return stream.use { Json.decodeFromStream(it) }
+&nbsp;    }
+&nbsp;
+&nbsp;    private val urls = listOf(
+&nbsp;        &quot;https://assets.empirical-software.engineering/teaching/26_ss/iase/world_cup_2026_full_data.json&quot;,
+&nbsp;        &quot;https://assets.empirical-software.engineering/teaching/26_ss/iase/world_cup_2026_full_data_v2.json&quot;,
+&nbsp;        &quot;http://192.0.2.1/world_cup_2026_full_data.json&quot;
+&nbsp;    )
+&nbsp;
+&nbsp;    @OptIn(ExperimentalSerializationApi::class)
+&nbsp;    fun loadJsonFromNetwork(
+&nbsp;        fetcher: UrlFetcher = { url -&gt;
+&nbsp;            val conn = URI(url).toURL().openConnection() as HttpURLConnection
+&nbsp;            conn.connectTimeout = 3000
+&nbsp;            conn.readTimeout = 5000
+&nbsp;            conn.inputStream
+&nbsp;        }
+&nbsp;    ): WorldCupData {
+&nbsp;        var lastError: Exception? = null
+&nbsp;        for (url in urls.shuffled()) {
+&nbsp;            try {
+&nbsp;                return fetcher.fetch(url).use { Json.decodeFromStream(it) }
+&nbsp;            } catch (e: Exception) {
+&nbsp;                lastError = e
+&nbsp;            }
+&nbsp;        }
+&nbsp;        throw lastError ?: error(&quot;All URLs failed&quot;)
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-09 22:37</div>
+</div>
+</body>
+</html>

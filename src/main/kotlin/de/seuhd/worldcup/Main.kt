@@ -1,0 +1,115 @@
+package de.seuhd.worldcup
+
+fun main() {
+    val data = JsonLoader.loadJson()
+    val teamsById: Map<String, Team> = data.groups.flatMap { it.teams }.associateBy { it.id }
+
+    while (true) {
+        printMenu()
+        when (Console.readInt("Choose an option (1 to 5): ", (1..5).toSet())) {
+            1 -> showStandings(data.groups)
+            2 -> showMatches(data.groups, teamsById)
+            3 -> placeBets(data.groups, teamsById)
+            4 -> showBettingScore(data.groups)
+            5 -> {
+                println("Bye!")
+                return
+            }
+        }
+    }
+}
+
+private fun printMenu() {
+    println()
+    println("===== FIFA World Cup 2026 - Betting Console =====")
+    println("1) Show Standings")
+    println("2) Show Matches")
+    println("3) Place Bets")
+    println("4) Show Betting Score")
+    println("5) Exit")
+    println("=================================================")
+}
+
+private fun showStandings(allGroups: List<Group>) {
+    println("\n--- Standings ---")
+    println("Available groups: ${allGroups.joinToString { it.name }}")
+    println("Enter a group name (e.g. \"Group A\") or press Enter to see ALL groups:")
+    val input = Console.readLineOrEmpty().trim()
+
+    val groups = if (input.isEmpty()) {
+        allGroups
+    } else {
+        val match = allGroups.find { it.name.equals(input, ignoreCase = true) }
+        if (match == null) {
+            println("No group named \"$input\".")
+            return
+        }
+        listOf(match)
+    }
+    groups.forEach(::printGroupTable)
+    Console.waitForEnter()
+}
+
+private fun printGroupTable(group: Group) {
+    println("\n${group.name}")
+    println(formatRow("Pos", "Team", "P", "GF", "GA", "GD"))
+    StandingsService.calculate(group).forEachIndexed { idx, entry ->
+        println(formatRow(idx + 1, entry.team.name, entry.points, entry.goalsFor, entry.goalsAgainst, entry.goalDiff))
+    }
+}
+
+private fun formatRow(pos: Any, team: Any, p: Any, gf: Any, ga: Any, gd: Any): String =
+    "%-3s %-20s %3s %3s %3s %3s".format(pos, team, p, gf, ga, gd)
+
+private fun showMatches(allGroups: List<Group>, teamsById: Map<String, Team>) {
+    println("\n--- Show Matches ---")
+    val group = chooseGroup(allGroups) ?: return
+
+    println("\nMatches for ${group.name}:")
+    group.matches.forEach { match ->
+        val score = match.scoreOrNull()?.let { (h, a) -> "$h:$a" } ?: "vs"
+        val home = teamsById.nameOf(match.homeTeam)
+        val away = teamsById.nameOf(match.awayTeam)
+        println("${match.date}: $home $score $away")
+    }
+    Console.waitForEnter()
+}
+
+private fun placeBets(allGroups: List<Group>, teamsById: Map<String, Team>) {
+    println("\n--- Place Bets ---")
+    val group = chooseGroup(allGroups) ?: return
+
+    println("You are about to bet on every match in ${group.name}.")
+    group.matches.forEach { match ->
+        val home = teamsById.nameOf(match.homeTeam)
+        val away = teamsById.nameOf(match.awayTeam)
+        println("\n$home vs $away on ${match.date}")
+        val code = Console.readInt(
+            "Your prediction (1 = Home win, 2 = Away win, 0 = Draw): ",
+            setOf(0, 1, 2)
+        )
+        BettingService.placeBet(Bet(matchId = match.matchId, prediction = Prediction.fromCode(code)))
+    }
+    println("\nAll bets for ${group.name} stored.")
+    Console.waitForEnter()
+}
+
+private fun showBettingScore(allGroups: List<Group>) {
+    println("\n--- Betting Score ---")
+    val allMatches = allGroups.flatMap { it.matches }
+    val result = BettingService.evaluate(allMatches)
+    println(
+        "You have ${result.correct} correct prediction(s) and ${result.incorrect} incorrect, " +
+            "out of ${result.evaluated} evaluated match(es)."
+    )
+    Console.waitForEnter()
+}
+
+private fun chooseGroup(allGroups: List<Group>): Group? {
+    println("Available groups: ${allGroups.joinToString { it.name }}")
+    val answer = Console.readLineOrEmpty().trim()
+    return allGroups.find { it.name.equals(answer, ignoreCase = true) }
+        ?: run { println("No such group, returning to main menu."); null }
+}
+
+private fun Map<String, Team>.nameOf(teamId: String): String = this[teamId]?.name ?: teamId

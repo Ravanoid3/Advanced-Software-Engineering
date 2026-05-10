@@ -1,0 +1,231 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MainKt</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">de.seuhd.worldcup</a>
+</div>
+
+<h1>Coverage Summary for Class: MainKt (de.seuhd.worldcup)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MainKt</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/72)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package de.seuhd.worldcup
+&nbsp;
+&nbsp;fun main() {
+<b class="nc">&nbsp;    val data = JsonLoader.loadJson()</b>
+<b class="nc">&nbsp;    val teamsById: Map&lt;String, Team&gt; = data.groups.flatMap { it.teams }.associateBy { it.id }</b>
+&nbsp;
+<b class="nc">&nbsp;    while (true) {</b>
+<b class="nc">&nbsp;        printMenu()</b>
+<b class="nc">&nbsp;        when (Console.readInt(&quot;Choose an option (1 to 5): &quot;, (1..5).toSet())) {</b>
+<b class="nc">&nbsp;            1 -&gt; showStandings(data.groups)</b>
+<b class="nc">&nbsp;            2 -&gt; showMatches(data.groups, teamsById)</b>
+<b class="nc">&nbsp;            3 -&gt; placeBets(data.groups, teamsById)</b>
+<b class="nc">&nbsp;            4 -&gt; showBettingScore(data.groups)</b>
+&nbsp;            5 -&gt; {
+<b class="nc">&nbsp;                println(&quot;Bye!&quot;)</b>
+&nbsp;                return
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;private fun printMenu() {
+<b class="nc">&nbsp;    println()</b>
+<b class="nc">&nbsp;    println(&quot;===== FIFA World Cup 2026 - Betting Console =====&quot;)</b>
+<b class="nc">&nbsp;    println(&quot;1) Show Standings&quot;)</b>
+<b class="nc">&nbsp;    println(&quot;2) Show Matches&quot;)</b>
+<b class="nc">&nbsp;    println(&quot;3) Place Bets&quot;)</b>
+<b class="nc">&nbsp;    println(&quot;4) Show Betting Score&quot;)</b>
+<b class="nc">&nbsp;    println(&quot;5) Exit&quot;)</b>
+<b class="nc">&nbsp;    println(&quot;=================================================&quot;)</b>
+&nbsp;}
+&nbsp;
+&nbsp;private fun showStandings(allGroups: List&lt;Group&gt;) {
+<b class="nc">&nbsp;    println(&quot;\n--- Standings ---&quot;)</b>
+<b class="nc">&nbsp;    println(&quot;Available groups: ${allGroups.joinToString { it.name }}&quot;)</b>
+<b class="nc">&nbsp;    println(&quot;Enter a group name (e.g. \&quot;Group A\&quot;) or press Enter to see ALL groups:&quot;)</b>
+<b class="nc">&nbsp;    val input = Console.readLineOrEmpty().trim()</b>
+&nbsp;
+<b class="nc">&nbsp;    val groups = if (input.isEmpty()) {</b>
+<b class="nc">&nbsp;        allGroups</b>
+&nbsp;    } else {
+<b class="nc">&nbsp;        val match = allGroups.find { it.name.equals(input, ignoreCase = true) }</b>
+<b class="nc">&nbsp;        if (match == null) {</b>
+<b class="nc">&nbsp;            println(&quot;No group named \&quot;$input\&quot;.&quot;)</b>
+&nbsp;            return
+&nbsp;        }
+<b class="nc">&nbsp;        listOf(match)</b>
+&nbsp;    }
+<b class="nc">&nbsp;    groups.forEach(::printGroupTable)</b>
+<b class="nc">&nbsp;    Console.waitForEnter()</b>
+&nbsp;}
+&nbsp;
+&nbsp;private fun printGroupTable(group: Group) {
+<b class="nc">&nbsp;    println(&quot;\n${group.name}&quot;)</b>
+<b class="nc">&nbsp;    println(formatRow(&quot;Pos&quot;, &quot;Team&quot;, &quot;P&quot;, &quot;GF&quot;, &quot;GA&quot;, &quot;GD&quot;))</b>
+<b class="nc">&nbsp;    StandingsService.calculate(group).forEachIndexed { idx, entry -&gt;</b>
+<b class="nc">&nbsp;        println(formatRow(idx + 1, entry.team.name, entry.points, entry.goalsFor, entry.goalsAgainst, entry.goalDiff))</b>
+<b class="nc">&nbsp;    }</b>
+&nbsp;}
+&nbsp;
+&nbsp;private fun formatRow(pos: Any, team: Any, p: Any, gf: Any, ga: Any, gd: Any): String =
+<b class="nc">&nbsp;    &quot;%-3s %-20s %3s %3s %3s %3s&quot;.format(pos, team, p, gf, ga, gd)</b>
+&nbsp;
+&nbsp;private fun showMatches(allGroups: List&lt;Group&gt;, teamsById: Map&lt;String, Team&gt;) {
+<b class="nc">&nbsp;    println(&quot;\n--- Show Matches ---&quot;)</b>
+<b class="nc">&nbsp;    val group = chooseGroup(allGroups) ?: return</b>
+&nbsp;
+<b class="nc">&nbsp;    println(&quot;\nMatches for ${group.name}:&quot;)</b>
+<b class="nc">&nbsp;    group.matches.forEach { match -&gt;</b>
+<b class="nc">&nbsp;        val score = match.scoreOrNull()?.let { (h, a) -&gt; &quot;$h:$a&quot; } ?: &quot;vs&quot;</b>
+<b class="nc">&nbsp;        val home = teamsById.nameOf(match.homeTeam)</b>
+<b class="nc">&nbsp;        val away = teamsById.nameOf(match.awayTeam)</b>
+<b class="nc">&nbsp;        println(&quot;${match.date}: $home $score $away&quot;)</b>
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;    Console.waitForEnter()</b>
+&nbsp;}
+&nbsp;
+&nbsp;private fun placeBets(allGroups: List&lt;Group&gt;, teamsById: Map&lt;String, Team&gt;) {
+<b class="nc">&nbsp;    println(&quot;\n--- Place Bets ---&quot;)</b>
+<b class="nc">&nbsp;    val group = chooseGroup(allGroups) ?: return</b>
+&nbsp;
+<b class="nc">&nbsp;    println(&quot;You are about to bet on every match in ${group.name}.&quot;)</b>
+<b class="nc">&nbsp;    group.matches.forEach { match -&gt;</b>
+<b class="nc">&nbsp;        val home = teamsById.nameOf(match.homeTeam)</b>
+<b class="nc">&nbsp;        val away = teamsById.nameOf(match.awayTeam)</b>
+<b class="nc">&nbsp;        println(&quot;\n$home vs $away on ${match.date}&quot;)</b>
+<b class="nc">&nbsp;        val code = Console.readInt(</b>
+<b class="nc">&nbsp;            &quot;Your prediction (1 = Home win, 2 = Away win, 0 = Draw): &quot;,</b>
+<b class="nc">&nbsp;            setOf(0, 1, 2)</b>
+&nbsp;        )
+<b class="nc">&nbsp;        BettingService.placeBet(Bet(matchId = match.matchId, prediction = Prediction.fromCode(code)))</b>
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;    println(&quot;\nAll bets for ${group.name} stored.&quot;)</b>
+<b class="nc">&nbsp;    Console.waitForEnter()</b>
+&nbsp;}
+&nbsp;
+&nbsp;private fun showBettingScore(allGroups: List&lt;Group&gt;) {
+<b class="nc">&nbsp;    println(&quot;\n--- Betting Score ---&quot;)</b>
+<b class="nc">&nbsp;    val allMatches = allGroups.flatMap { it.matches }</b>
+<b class="nc">&nbsp;    val result = BettingService.evaluate(allMatches)</b>
+<b class="nc">&nbsp;    println(</b>
+<b class="nc">&nbsp;        &quot;You have ${result.correct} correct prediction(s) and ${result.incorrect} incorrect, &quot; +</b>
+<b class="nc">&nbsp;            &quot;out of ${result.evaluated} evaluated match(es).&quot;</b>
+&nbsp;    )
+<b class="nc">&nbsp;    Console.waitForEnter()</b>
+&nbsp;}
+&nbsp;
+&nbsp;private fun chooseGroup(allGroups: List&lt;Group&gt;): Group? {
+<b class="nc">&nbsp;    println(&quot;Available groups: ${allGroups.joinToString { it.name }}&quot;)</b>
+<b class="nc">&nbsp;    val answer = Console.readLineOrEmpty().trim()</b>
+<b class="nc">&nbsp;    return allGroups.find { it.name.equals(answer, ignoreCase = true) }</b>
+<b class="nc">&nbsp;        ?: run { println(&quot;No such group, returning to main menu.&quot;); null }</b>
+&nbsp;}
+&nbsp;
+<b class="nc">&nbsp;private fun Map&lt;String, Team&gt;.nameOf(teamId: String): String = this[teamId]?.name ?: teamId</b>
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-09 22:37</div>
+</div>
+</body>
+</html>
