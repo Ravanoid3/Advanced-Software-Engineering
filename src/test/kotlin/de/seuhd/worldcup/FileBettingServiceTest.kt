@@ -6,10 +6,15 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.TestMethodOrder
+import org.junit.jupiter.api.AfterEach
 
 /** Tests for [FileBettingService]. */
 @TestMethodOrder(MethodOrderer.Random::class)
 class FileBettingServiceTest {
+    @AfterEach
+    fun cleanup() {
+        SHARED_BET_FILE.delete()
+    }
 
     @Test
     fun `test file betting with threads`() {

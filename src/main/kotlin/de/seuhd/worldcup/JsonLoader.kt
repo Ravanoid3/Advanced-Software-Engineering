@@ -21,12 +21,7 @@ object JsonLoader {
     fun loadJson(resourcePath: String = "/world_cup_2026_full_data.json"): WorldCupData {
         val stream = JsonLoader::class.java.getResourceAsStream(resourcePath)
             ?: error("Resource not found on classpath: $resourcePath")
-
-        // 1. Create a custom Json instance that explicitly ignores unknown keys
-        val lenientJson = Json { ignoreUnknownKeys = true }
-
-        // 2. Use lenientJson instead of the default Json object
-        return stream.use { lenientJson.decodeFromStream(it) }
+        return stream.use { Json.decodeFromStream(it) }
     }
 
     private val urls = listOf(
@@ -45,7 +40,7 @@ object JsonLoader {
         }
     ): WorldCupData {
         var lastError: Exception? = null
-        for (url in urls.shuffled()) {
+        for (url in urls) {
             try {
                 return fetcher.fetch(url).use { Json.decodeFromStream(it) }
             } catch (e: Exception) {

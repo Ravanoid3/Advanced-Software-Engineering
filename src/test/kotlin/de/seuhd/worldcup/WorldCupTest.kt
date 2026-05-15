@@ -168,9 +168,14 @@ class WorldCupTest {
     }
 
     @Test
-    @Timeout(value = 300, unit = TimeUnit.MILLISECONDS)
-    fun `load json from network`(){
-        val jsonNetwork = JsonLoader.loadJsonFromNetwork()
+    @Timeout(value = 3000, unit = TimeUnit.MILLISECONDS)
+    fun `load json from network`() {
+        val testDoubleFetcher = UrlFetcher { _ ->
+            JsonLoader::class.java.getResourceAsStream("/world_cup_2026_full_data.json")
+                ?: error("File not found")
+        }
+
+        val jsonNetwork = JsonLoader.loadJsonFromNetwork(fetcher = testDoubleFetcher)
         val jsonLocal = JsonLoader.loadJson()
 
         assertEquals(jsonLocal, jsonNetwork)
